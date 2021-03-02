@@ -1,4 +1,20 @@
 
+; A complete implementation of the THUMB instruction set
+
+; Based on the following reference document:
+; - https://edu.heibai.org/ARM%E8%B5%84%E6%96%99/ARM7-TDMI-manual-pt3.pdf
+
+; Here's a list of differences with the reference document, mostly due to customasm limitations:
+; - Operations with two operands always have brackets, e.g: ADD A1, [A2, A3]
+; - PUSH syntax is `PUSH [0b00000000] or `PUSH [0b00000000, LR]` where each bits toggles a low register
+; - POP  syntax is `POP  [0b00000000] or `POP  [0b00000000, PC]` where each bits toggles a low register
+; - Branch instructions take a PC-relative offset, e.g: `BL label - $ - 4`. Note the prefetch `4` offset.
+; - `ADD A1, [PC, label - ($ + 4 & !0b10)]` take a PC-relative offset. Note the word alignment.
+; - `LDR A1, [PC, label - ($ + 4 & !0b10)]` take a PC-relative offset. Note the word alignment.
+; - `ADD SP, -offset` is replaced with `SUB SP, offset`, for consistency
+
+
+; Low registers and their aliases
 #subruledef loregister
 {
         R0 => 0`3
@@ -19,9 +35,11 @@
         V3 => 6`3
         V4 => 7`3
 
-        FP => 7`3 ; Frame pointer
+        FP => 7`3 ; Frame pointer in THUMB
 }
 
+
+; High registers and their aliases
 #subruledef hiregister
 {
         R8 => 0`3
@@ -46,6 +64,7 @@
         PC => 7`3 ; Program counter
 }
 
+; 16-bit THUMB instructions
 #subruledef half_word_thumb
 {
     ; Move shifted register
@@ -171,18 +190,24 @@
     B {label: s12} => 0b11100 @ (label >> 1)`11
 }
 
+
+; 32-bits THUMB instructions
 #subruledef word_thumb
 {
     ; Long branch with link
     BL {label: s23} => 0b11110 @ label[22:12] @ 0b11111 @ label[11:1]
 }
 
+
+; 64-bits ARM instruction for switching from ARM to THUMB
 #subruledef switch_to_thumb
 {
     ; Switch from ARM to THUMB
     STT => 0xe28f0001 @ 0xe12fff10 ; ADD R0, PC, #1; BX R0
 }
 
+
+; Expose all the rules as little endian
 #ruledef little_endian_thumb
 {
     {val: half_word_thumb}      => val[7:0] @ val[15:8]

@@ -9,15 +9,19 @@ It converts lowercase characters to uppercase, leaving other characters untouche
 The idea behind this project was to produce a working Linux binary without relying on any tool that contains knowledge about Linux or any specific CPU. Surprisingly enough, all that's needed to achieve this is:
 - An agnostic assembler
 - The [ELF][elf] specification (to produce a working executable)
-- The [ARM][arm] instruction set specification (for the actual program)
+- The instruction set specification for the target architecture (for the actual program)
 - The [Linux system call][syscall] specification (to communicate with the kernel)
 
 Here's the corresponding tools and resources I ended up using:
 - First python, then the amazing [customasm] project
-- [In-depth: ELF - The Extensible & Linkable Format](https://youtu.be/nC1U1LJQL8o) by stacksmashing 
-- [The ARM7TDMI-S Data Sheet](https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf)
+- [In-depth: ELF - The Extensible & Linkable Format](https://youtu.be/nC1U1LJQL8o) by stacksmashing
+- [The THUMB instruction set reference document](https://edu.heibai.org/ARM%E8%B5%84%E6%96%99/ARM7-TDMI-manual-pt3.pdf)
 - [The Linux system call table for ARM 32-bit](https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#arm-32_bit_EABI)
 
+I also used some bits of the following ARM documents:
+- [The ARM instruction set reference document](https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf)
+- [The ARM-THUMB procedure call standard](http://www.cs.cornell.edu/courses/cs414/2001FA/armcallconvention.pdf)
+- [The quick reference card for THUMB](https://www.engr.scu.edu/~dlewis/book3/docs/Thumb%2016-bit%20Instruction%20Set.pdf)
 
 ## Tools
 
@@ -59,9 +63,9 @@ Data is read from stdin and written to stdout.
 $ echo "1.. 2.. This is a test.." | ./upper
 1.. 2.. THIS IS A TEST..
 
-# The binary is actually quite small, about half a KB
+# The binary is actually quite small, less than half a KB
 wc -c upper
-501 upper
+475 upper
 
 # customasm can also produce an annotated binary
 $ customasm upper.asm -f annotated -p

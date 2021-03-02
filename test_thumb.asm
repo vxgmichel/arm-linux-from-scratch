@@ -1,3 +1,10 @@
+; Write all the instructions in THUMB in order
+
+; Useful for testing the THUMB ruleset against regression:
+; $ customasm test_thumb.asm -p thumb_reference.bin
+; $ <make some changes>
+; $ customasm test_thumb.asm -p | diff thumb_reference.bin -
+
 ; Load the THUMB instruction ruleset
 #include "thumb.asm"
 
