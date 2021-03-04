@@ -68,18 +68,18 @@
 #subruledef half_word_thumb
 {
     ; Move shifted register
-    MOV {rd: loregister}, {rs: loregister}               => 0b000 @ 0b00 @ 0`5 @ rs @ rd
+    MOV {rd: loregister}, {rs: loregister}              => 0b000 @ 0b00 @ 0`5 @ rs @ rd
     LSL {rd: loregister}, [{rs: loregister}, {off: u5}] => 0b000 @ 0b00 @ off`5 @ rs @ rd
     LSR {rd: loregister}, [{rs: loregister}, {off: u5}] => 0b000 @ 0b01 @ off`5 @ rs @ rd
     ASR {rd: loregister}, [{rs: loregister}, {off: u5}] => 0b000 @ 0b10 @ off`5 @ rs @ rd
 
     ; Add/substract
-    ADD {rd: loregister}, {rs: loregister}                     => 0b00011 @ 0b0 @ 0b0 @ rd @ rs @ rd
+    ADD {rd: loregister}, {rn: loregister}                     => 0b00011 @ 0b0 @ 0b0 @ rn @ rd @ rd
     ADD {rd: loregister}, [{rs: loregister}, {rn: loregister}] => 0b00011 @ 0b0 @ 0b0 @ rn @ rs @ rd
-    ADD {rd: loregister}, [{rs: loregister}, {off: u3}]       => 0b00011 @ 0b1 @ 0b0 @ off`3 @ rs @ rd
-    SUB {rd: loregister}, {rs: loregister}                     => 0b00011 @ 0b0 @ 0b1 @ rd @ rs @ rd
+    ADD {rd: loregister}, [{rs: loregister}, {off: u3}]        => 0b00011 @ 0b1 @ 0b0 @ off`3 @ rs @ rd
+    SUB {rd: loregister}, {rn: loregister}                     => 0b00011 @ 0b0 @ 0b1 @ rn @ rd @ rd
     SUB {rd: loregister}, [{rs: loregister}, {rn: loregister}] => 0b00011 @ 0b0 @ 0b1 @ rn @ rs @ rd
-    SUB {rd: loregister}, [{rs: loregister}, {off: u3}]       => 0b00011 @ 0b1 @ 0b1 @ off`3 @ rs @ rd
+    SUB {rd: loregister}, [{rs: loregister}, {off: u3}]        => 0b00011 @ 0b1 @ 0b1 @ off`3 @ rs @ rd
 
     ; Move/compare/add/subtract immediate
     MOV {rd: loregister}, {off: u8} => 0b001 @ 0b00 @ rd @ off`8
