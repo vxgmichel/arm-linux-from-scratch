@@ -88,18 +88,18 @@ uppercase:
     MOV V1, 0             ; Initialize offset
     .loop:
     CMP A2, V1            ; Test offset against buffer size
-    BEQ .exit - $ - 4     ; End of buffer is reached
+    BEQ .exit             ; End of buffer is reached
     LDRB V2, [A1, V1]     ; Read the byte at offset
     .test:
     CMP V2, "a"           ; Compare byte against "a"
-    BMI .continue - $ - 4 ; The byte is too low
+    BMI .continue         ; The byte is too low
     CMP V2, "z" + 1       ; Compare byte against "z" + 1
-    BPL .continue - $ - 4 ; The byte is too high
+    BPL .continue         ; The byte is too high
     SUB V2, 32            ; Decrement character by 32
     .continue:
     STRB V2, [A1, V1]     ; Write the byte back
     ADD V1, 1             ; Increment offset
-    B .loop - $ - 4       ; Loop over
+    B .loop               ; Loop over
     .exit:
     POP [0b11110000, PC]  ; Return from subroutine and restore context
 
@@ -121,11 +121,11 @@ strcmp:
     LDRB V1, [A1, A3]     ; Load a byte from A1
     LDRB V2, [A2, A3]     ; Load a byte from A2
     CMP V1, V2            ; Compare the bytes
-    BNE .break - $ - 4    ; Bytes are different
+    BNE .break            ; Bytes are different
     TST V1, V1            ; Compare against zero
-    BEQ .break - $ - 4    ; Bytes are null
+    BEQ .break            ; Bytes are null
     ADD A3, 1             ; Increment offset
-    B .loop - $ - 4       ; Loop over
+    B .loop               ; Loop over
     .break:
     SUB A1, [V1, V2]      ; Set the return value to the byte difference
     POP [0b11110000, PC]  ; Return from subroutine and restore context
@@ -133,60 +133,60 @@ strcmp:
 
 ; Program entry point as defined in `elf.asm`
 program:
-    STT                                                 ; Switch to THUMB
+    STT                         ; Switch to THUMB
 
-    .thumb_program:                                     ; Initialize stack registers:
-    LDR A1, [PC, stack_base_address - ($ + 4 & !0b10)]  ; Load stack base into A1
-    MOV SB, A1                                          ; Set stack base
-    LDR A1, [PC, stack_limit_address - ($ + 4 & !0b10)] ; Load stack limit into A1
-    MOV SL, A1                                          ; Set stack limit
-    LDR V1, [SP, 0]                                     ; Load argc in V1
-    ADD V2, [SP, 4]                                     ; Load argv in V2
-    MOV SP, SB                                          ; Set stack pointer
+    .thumb_program:             ; Initialize stack registers:
+    LDR A1, stack_base_address  ; Load stack base into A1
+    MOV SB, A1                  ; Set stack base
+    LDR A1, stack_limit_address ; Load stack limit into A1
+    MOV SL, A1                  ; Set stack limit
+    LDR V1, [SP, 0]             ; Load argc in V1
+    ADD V2, [SP, 4]             ; Load argv in V2
+    MOV SP, SB                  ; Set stack pointer
 
-    .argparse:                                          ; Parse arguments:
-    CMP V1, 2                                           ; Test argc >= 2
-    BMI .run - $ - 4                                    ; No argument provided, goto run
-    LDR A1, [V2, 4]                                     ; Load argv[1] in A1
-    LDR A2, [PC, help_arg_address - ($ + 4 & !0b10)]    ; Load help_arg in A2
-    BL strcmp - $ - 4                                   ; Compare both argument
-    TST A1, A1                                          ; Test the result
-    BNE .run - $ - 4                                    ; Argument is not `--help`, goto run
+    .argparse:                  ; Parse arguments:
+    CMP V1, 2                   ; Test argc >= 2
+    BMI .run                    ; No argument provided, goto run
+    LDR A1, [V2, 4]             ; Load argv[1] in A1
+    LDR A2, help_arg_address    ; Load help_arg in A2
+    BL strcmp                   ; Compare both argument
+    TST A1, A1                  ; Test the result
+    BNE .run                    ; Argument is not `--help`, goto run
 
-    .help:                                              ; Show help message:
-    MOV A1, STDOUT                                      ; Prepare a write to stdout
-    LDR A2, [PC, message_address - ($ + 4 & !0b10)]     ; Load the message address
-    MOV A3, MESSAGE_LENGTH                              ; With the right length
-    BL write - $ - 4                                    ; Call the write subroutine
-    B .exit - $ - 4                                     ; Goto exit
+    .help:                      ; Show help message:
+    MOV A1, STDOUT              ; Prepare a write to stdout
+    LDR A2, message_address     ; Load the message address
+    MOV A3, MESSAGE_LENGTH      ; With the right length
+    BL write                    ; Call the write subroutine
+    B .exit                     ; Goto exit
 
-    .run:                                               ; Prepare the main run:
-    SUB SP, 128                                         ; Allocate 128 bytes on the stack
-    MOV V3, SP                                          ; And store the address in V3
+    .run:                       ; Prepare the main run:
+    SUB SP, 128                 ; Allocate 128 bytes on the stack
+    MOV V3, SP                  ; And store the address in V3
 
-    .loop:                                              ; Loop over read calls:
-    MOV A1, STDIN                                       ; Prepare a read from stdin
-    MOV A2, V3                                          ; Provide the address of the buffer
-    MOV A3, 128                                         ; Read at most 128 bytes
-    BL read - $ - 4                                     ; Call the read subroutine
-    MOV V4, A1                                          ; Save the result in V4
+    .loop:                      ; Loop over read calls:
+    MOV A1, STDIN               ; Prepare a read from stdin
+    MOV A2, V3                  ; Provide the address of the buffer
+    MOV A3, 128                 ; Read at most 128 bytes
+    BL read                     ; Call the read subroutine
+    MOV V4, A1                  ; Save the result in V4
 
-    BEQ .exit - $ - 4                                   ; Exit if EOF is reached
+    BEQ .exit                   ; Exit if EOF is reached
 
-    MOV A1, V3                                          ; Prepare a buffer update
-    MOV A2, V4                                          ; Over the correct size
-    BL uppercase - $ - 4                                ; Call the uppercase subroutine
+    MOV A1, V3                  ; Prepare a buffer update
+    MOV A2, V4                  ; Over the correct size
+    BL uppercase                ; Call the uppercase subroutine
 
-    MOV A1, STDOUT                                      ; Prepare a write to stdout
-    MOV A2, V3                                          ; Load the message address
-    MOV A3, V4                                          ; With the right length
-    BL write - $ - 4                                    ; Call the write subroutine
+    MOV A1, STDOUT              ; Prepare a write to stdout
+    MOV A2, V3                  ; Load the message address
+    MOV A3, V4                  ; With the right length
+    BL write                    ; Call the write subroutine
 
-    B .loop - $ - 4                                     ; Loop over
+    B .loop                     ; Loop over
 
-    .exit:                                              ; Exit with 0:
-    MOV A1, 0                                           ; Set return code to 0
-    BL exit - $ - 4                                     ; Call the exit subroutine
+    .exit:                      ; Exit with 0:
+    MOV A1, 0                   ; Set return code to 0
+    BL exit                     ; Call the exit subroutine
 
     ; Addresses
     #align 32

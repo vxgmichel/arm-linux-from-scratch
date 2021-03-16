@@ -67,6 +67,10 @@ BX V5
 
 ; PC-relative load
 LDR A1, [PC, 1019]
+LDR A1, label1
+#res 1020
+#align 32
+label1: #d32 0
 
 ; Load/store with register offset
 STR A1, [A2, A3]
@@ -97,6 +101,10 @@ LDR A1, [SP, 255]
 ; Load address
 ADD A1, [PC, 1023]
 ADD A1, [SP, 1023]
+ADR A1, label2
+#res 1020
+#align 32
+label2: #d32 0
 
 ; Add offset to Stack Pointer
 ADD SP, 508
@@ -115,20 +123,20 @@ LDMIA A1!, 0b11111110
 ; Conditional branch
 before1:
 #res 240
-BEQ before1 - $ - 4
-BNE before1 - $ - 4
-BCS before1 - $ - 4
-BCC before1 - $ - 4
-BMI before1 - $ - 4
-BPL before1 - $ - 4
-BVS before1 - $ - 4
-BVC after1 - $ - 4
-BHI after1 - $ - 4
-BLS after1 - $ - 4
-BGE after1 - $ - 4
-BLT after1 - $ - 4
-BGT after1 - $ - 4
-BLE after1 - $ - 4
+BEQ before1
+BNE before1
+BCS before1
+BCC before1
+BMI before1
+BPL before1
+BVS before1
+BVC after1
+BHI after1
+BLS after1
+BGE after1
+BLT after1
+BGT after1
+BLE after1
 #res 244
 after1:
 
@@ -138,15 +146,15 @@ SWI 255
 ; Unconditional branch
 before2:
 #res 2044
-B before2 - $ - 4
-B after2 - $ - 4
+B before2
+B after2
 #res 2048
 after2:
 
 ; Long branch with link
 before3:
 #res 4194300
-BL before3 - $ - 4
-BL after3 - $ - 4
+BL before3
+BL after3
 #res 4194302
 after3:

@@ -4,14 +4,14 @@
 ; Based on the following reference document:
 ; - https://edu.heibai.org/ARM%E8%B5%84%E6%96%99/ARM7-TDMI-manual-pt3.pdf
 
-; Here's a list of differences with the reference document, mostly due to customasm limitations:
+; Here's a list of differences with the reference document:
+; - The `#` character, typically used for immediate values, is ommited
 ; - Operations with two operands always have brackets, e.g: ADD A1, [A2, A3]
+; - `ADD SP, -offset` is replaced with `SUB SP, offset`, for consistency
+; - `LDR A1, label` is used as `LDR A1, [PC, offset]` with the offset being pre-computed from label
+; - `ADR A1, label` is used as `ADD A1, [PC, offset]` with the offset being pre-computed from label
 ; - PUSH syntax is `PUSH [0b00000000] or `PUSH [0b00000000, LR]` where each bits toggles a low register
 ; - POP  syntax is `POP  [0b00000000] or `POP  [0b00000000, PC]` where each bits toggles a low register
-; - Branch instructions take a PC-relative offset, e.g: `BL label - $ - 4`. Note the prefetch `4` offset.
-; - `ADD A1, [PC, label - ($ + 4 & !0b10)]` take a PC-relative offset. Note the word alignment.
-; - `LDR A1, [PC, label - ($ + 4 & !0b10)]` take a PC-relative offset. Note the word alignment.
-; - `ADD SP, -offset` is replaced with `SUB SP, offset`, for consistency
 
 
 ; Low registers and their aliases
@@ -62,6 +62,62 @@
         SP => 5`3 ; Stack pointer
         LR => 6`3 ; Link register
         PC => 7`3 ; Program counter
+}
+
+; Signed 8-bit half word label
+#subruledef s8_half_word_label
+{
+    {label: u32} => {
+        bits = 8
+        limit = 1 << bits
+        offset = label - ($ + 4)
+        assert(offset[0:0] == 0)
+        assert(offset >= -limit)
+        assert(offset < limit)
+        offset[8:1]
+    }
+}
+
+; Signed 11-bit half word label
+#subruledef s11_half_word_label
+{
+    {label: u32} => {
+        bits = 11
+        limit = 1 << bits
+        offset = label - ($ + 4)
+        assert(offset[0:0] == 0)
+        assert(offset >= -limit)
+        assert(offset < limit)
+        offset[11:1]
+    }
+}
+
+; Signed 22-bit half word label
+#subruledef s22_half_word_label
+{
+    {label: u32} => {
+        bits = 22
+        limit = 1 << bits
+        offset = label - ($ + 4)
+        assert(offset[0:0] == 0)
+        assert(offset >= -limit)
+        assert(offset < limit)
+        offset[22:1]
+    }
+}
+
+; Unsigned 8-bit word label
+#subruledef u8_word_label
+{
+    {label: u32} => {
+        bits = 8
+        limit = 1 << (bits + 2)
+        offset = label - ($ + 4 & !0b10)
+        assert(offset[1:0] == 0)
+        assert(offset >= 0)
+        assert(offset < limit)
+        offset[9:2]
+    }
 }
 
 ; 16-bit THUMB instructions
@@ -121,7 +177,8 @@
     BX {hs: hiregister} => 0b010001110 @ 0b1 @ hs @ 0o0
 
     ; PC-relative load
-    LDR {rd: loregister}, [PC, {off: u10}] => 0b01001 @ rd @ off[9:2]
+    LDR {rd: loregister}, [PC, {off: u10}]       => 0b01001 @ rd @ off[9:2]
+    LDR {rd: loregister}, {label: u8_word_label} => 0b01001 @ rd @ label
 
     ; Load/store with register offset
     STR {rd: loregister}, [{rb: loregister}, {ro: loregister}]  => 0b0101 @ 0b0 @ 0b0 @ 0b0 @ ro @ rb @ rd
@@ -150,8 +207,9 @@
     LDR {rd: loregister}, [SP, {off: u8}] => 0b1001 @0b1 @ rd @ off`8
 
     ; Load address
-    ADD {rd: loregister}, [PC, {off: u10}] => 0b1010 @ 0b0 @ rd @ off[9:2]
-    ADD {rd: loregister}, [SP, {off: u10}] => 0b1010 @ 0b1 @ rd @ off[9:2]
+    ADD {rd: loregister}, [PC, {off: u10}]       => 0b1010 @ 0b0 @ rd @ off[9:2]
+    ADR {rd: loregister}, {label: u8_word_label} => 0b1010 @ 0b0 @ rd @ label
+    ADD {rd: loregister}, [SP, {off: u10}]       => 0b1010 @ 0b1 @ rd @ off[9:2]
 
     ; Add offset to stack pointer
     ADD SP, {off: u9} => 0b10110000 @ 0b0 @ off[8:2]
@@ -168,26 +226,26 @@
     LDMIA {rb: loregister}!, {rlist: u8} => 0b1100 @ 0b1 @ rb @ rlist
 
     ; Conditional branch
-    BEQ {label: s9} => 0b1101 @ 0x0 @ label[8:1]
-    BNE {label: s9} => 0b1101 @ 0x1 @ label[8:1]
-    BCS {label: s9} => 0b1101 @ 0x2 @ label[8:1]
-    BCC {label: s9} => 0b1101 @ 0x3 @ label[8:1]
-    BMI {label: s9} => 0b1101 @ 0x4 @ label[8:1]
-    BPL {label: s9} => 0b1101 @ 0x5 @ label[8:1]
-    BVS {label: s9} => 0b1101 @ 0x6 @ label[8:1]
-    BVC {label: s9} => 0b1101 @ 0x7 @ label[8:1]
-    BHI {label: s9} => 0b1101 @ 0x8 @ label[8:1]
-    BLS {label: s9} => 0b1101 @ 0x9 @ label[8:1]
-    BGE {label: s9} => 0b1101 @ 0xa @ label[8:1]
-    BLT {label: s9} => 0b1101 @ 0xb @ label[8:1]
-    BGT {label: s9} => 0b1101 @ 0xc @ label[8:1]
-    BLE {label: s9} => 0b1101 @ 0xd @ label[8:1]
+    BEQ {label: s8_half_word_label} => 0b1101 @ 0x0 @ label
+    BNE {label: s8_half_word_label} => 0b1101 @ 0x1 @ label
+    BCS {label: s8_half_word_label} => 0b1101 @ 0x2 @ label
+    BCC {label: s8_half_word_label} => 0b1101 @ 0x3 @ label
+    BMI {label: s8_half_word_label} => 0b1101 @ 0x4 @ label
+    BPL {label: s8_half_word_label} => 0b1101 @ 0x5 @ label
+    BVS {label: s8_half_word_label} => 0b1101 @ 0x6 @ label
+    BVC {label: s8_half_word_label} => 0b1101 @ 0x7 @ label
+    BHI {label: s8_half_word_label} => 0b1101 @ 0x8 @ label
+    BLS {label: s8_half_word_label} => 0b1101 @ 0x9 @ label
+    BGE {label: s8_half_word_label} => 0b1101 @ 0xa @ label
+    BLT {label: s8_half_word_label} => 0b1101 @ 0xb @ label
+    BGT {label: s8_half_word_label} => 0b1101 @ 0xc @ label
+    BLE {label: s8_half_word_label} => 0b1101 @ 0xd @ label
 
     ; Software Interrupt
     SWI {cmt: u8} => 0b11011111 @ cmt
 
     ; Unconditional branch
-    B {label: s12} => 0b11100 @ (label >> 1)`11
+    B {label: s11_half_word_label} => 0b11100 @ label
 }
 
 
@@ -195,7 +253,7 @@
 #subruledef word_thumb
 {
     ; Long branch with link
-    BL {label: s23} => 0b11110 @ label[22:12] @ 0b11111 @ label[11:1]
+    BL {label: s22_half_word_label} => 0b11110 @ label[21:11] @ 0b11111 @ label[10:0]
 }
 
 
