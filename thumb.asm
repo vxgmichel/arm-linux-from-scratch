@@ -222,8 +222,8 @@
     POP [{rlist: u8}, PC]  => 0b1011 @ 0b1 @ 0b10 @ 0b1 @ rlist
 
     ; Multiple load/store
-    STMIA {rb: loregister}!, {rlist: u8} => 0b1100 @ 0b0 @ rb @ rlist
-    LDMIA {rb: loregister}!, {rlist: u8} => 0b1100 @ 0b1 @ rb @ rlist
+    STMIA {rb: loregister}, {rlist: u8} => 0b1100 @ 0b0 @ rb @ rlist
+    LDMIA {rb: loregister}, {rlist: u8} => 0b1100 @ 0b1 @ rb @ rlist
 
     ; Conditional branch
     BEQ {label: s8_half_word_label} => 0b1101 @ 0x0 @ label

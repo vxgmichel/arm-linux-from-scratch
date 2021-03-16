@@ -117,8 +117,8 @@ POP [0b11111111]
 POP [0b11111111, PC]
 
 ; Multiple load/store
-STMIA A1!, 0b11111110
-LDMIA A1!, 0b11111110
+STMIA A1, 0b11111110
+LDMIA A1, 0b11111110
 
 ; Conditional branch
 before1:
