@@ -44,7 +44,7 @@ PF_R = 0x4                      ; Read access
 ld16 2                          ; Static executable
 ld16 0x28                       ; ARM
 ld32 1                          ; ELF version 1
-ld32 program                    ; Entry point
+ld32 entry_point                ; Entry point
 ld32 ELF_HEADER_SIZE            ; Program header offset
 ld32 0                          ; Section header offset
 ld32 0                          ; Flags

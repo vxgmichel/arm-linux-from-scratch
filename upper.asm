@@ -132,7 +132,8 @@ strcmp:
 
 
 ; Program entry point as defined in `elf.asm`
-program:
+#align 32
+entry_point:
     STT                         ; Switch to THUMB
 
     .thumb_program:             ; Initialize stack registers:
