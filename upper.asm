@@ -210,6 +210,9 @@ MESSAGE_LENGTH = $ - message
 
 
 ; Stack of 1 KB - Full descending
-#align 32
+; The `end_program` and `end_memory` labels are used by the program header bank
+; to compute the size of the program segment in the file and in-memory.
+end_program: #align 32
 stack_limit: #res 1024
-stack_base: #res 4
+stack_base:
+end_memory:

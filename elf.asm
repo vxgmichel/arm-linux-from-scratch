@@ -8,12 +8,11 @@
 ; Sizes
 ELF_HEADER_SIZE = 0x34          ; 32 bits ELF header size
 PROGRAM_HEADER_SIZE = 0x20      ; 32 bits program header size
-PROGRAM_SIZE = 0x1000           ; Loose upper bound for program size
-ADDRESS_BASE = 0x1000           ; Use next memory page after 0
+ADDRESS_BASE = 0x10000          ; Use virtual memory starting at page 16
 
 ; Program offset
-PROGRAM_OFFSET = 0x34 + 0x20                    ; In file
-PROGRAM_ADDRESS = ADDRESS_BASE + PROGRAM_OFFSET ; In memory
+PROGRAM_OFFSET = ELF_HEADER_SIZE + PROGRAM_HEADER_SIZE ; In file
+PROGRAM_ADDRESS = ADDRESS_BASE + PROGRAM_OFFSET        ; In memory
 
 ; Segment access rights
 PF_X = 0x1                      ; Execution access
@@ -30,7 +29,7 @@ PF_R = 0x4                      ; Read access
 ; Bank definitions
 #bankdef elf_header {#addr 0, #size ELF_HEADER_SIZE, #outp 0}
 #bankdef program_header {#addr ELF_HEADER_SIZE, #size PROGRAM_HEADER_SIZE, #outp 8 * ELF_HEADER_SIZE}
-#bankdef program {#addr PROGRAM_ADDRESS, #size PROGRAM_SIZE, #outp 8 * PROGRAM_OFFSET}
+#bankdef program {#addr PROGRAM_ADDRESS, #outp 8 * PROGRAM_OFFSET}
 
 ; ELF header
 #bank elf_header
@@ -59,10 +58,10 @@ ld16 0                          ; Section header string table index
 ; Program header
 #bank program_header
 ld32 1                          ; Load type
-ld32 PROGRAM_OFFSET             ; Program offset
-ld32 PROGRAM_ADDRESS            ; Virtual address
-ld32 PROGRAM_ADDRESS            ; Physicial address
-ld32 PROGRAM_SIZE               ; Program size in the file
-ld32 PROGRAM_SIZE               ; Program size in memory
+ld32 0                          ; Program offset, using 0 to load the full file into memory
+ld32 ADDRESS_BASE               ; Virtual address
+ld32 ADDRESS_BASE               ; Physicial address
+ld32 end_program - ADDRESS_BASE ; Program size in the file
+ld32 end_memory - ADDRESS_BASE  ; Program size in memory
 ld32 PF_X | PF_W | PF_R         ; Execute, write and read flags
 ld32 ADDRESS_BASE               ; Alignement
