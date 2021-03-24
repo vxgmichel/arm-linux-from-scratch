@@ -6,62 +6,61 @@
 
 ; Here's a list of differences with the reference document:
 ; - The `#` character, typically used for immediate values, is ommited
-; - Operations with two operands always have brackets, e.g: ADD A1, [A2, A3]
 ; - `ADD SP, -offset` is replaced with `SUB SP, offset`, for consistency
 ; - `LDR A1, label` is used as `LDR A1, [PC, offset]` with the offset being pre-computed from label
-; - `ADR A1, label` is used as `ADD A1, [PC, offset]` with the offset being pre-computed from label
-; - PUSH syntax is `PUSH [0b00000000] or `PUSH [0b00000000, LR]` where each bits toggles a low register
-; - POP  syntax is `POP  [0b00000000] or `POP  [0b00000000, PC]` where each bits toggles a low register
+; - `ADR A1, label` is used as `ADD A1, PC, offset` with the offset being pre-computed from label
+; - The `PUSH` syntax is `PUSH V1, ..., V2, LR`
+; - The `POP` syntax is `POP V1, ..., V4, PC`
 
 
 ; Low registers and their aliases
 #subruledef loregister
 {
-        R0 => 0`3
-        R1 => 1`3
-        R2 => 2`3
-        R3 => 3`3
-        R4 => 4`3
-        R5 => 5`3
-        R6 => 6`3
-        R7 => 7`3
+    R0 => 0`3
+    R1 => 1`3
+    R2 => 2`3
+    R3 => 3`3
+    R4 => 4`3
+    R5 => 5`3
+    R6 => 6`3
+    R7 => 7`3
 
-        A1 => 0`3
-        A2 => 1`3
-        A3 => 2`3
-        A4 => 3`3
-        V1 => 4`3
-        V2 => 5`3
-        V3 => 6`3
-        V4 => 7`3
+    A1 => 0`3
+    A2 => 1`3
+    A3 => 2`3
+    A4 => 3`3
+    V1 => 4`3
+    V2 => 5`3
+    V3 => 6`3
+    V4 => 7`3
 
-        FP => 7`3 ; Frame pointer in THUMB
+    FP => 7`3 ; Frame pointer in THUMB
 }
 
 
 ; High registers and their aliases
 #subruledef hiregister
 {
-        R8 => 0`3
-        R9 => 1`3
-        RA => 2`3 ; R10
-        RB => 3`3 ; R11
-        RC => 4`3 ; R12
-        RD => 5`3 ; R13
-        RE => 6`3 ; R14
-        RF => 7`3 ; R15
+    R8 => 0`3
+    R9 => 1`3
+    RA => 2`3 ; R10
+    RB => 3`3 ; R11
+    RC => 4`3 ; R12
+    RD => 5`3 ; R13
+    RE => 6`3 ; R14
+    RF => 7`3 ; R15
 
-        V5 => 0`3 ; R8
-        V6 => 1`3 ; R9
-        V7 => 2`3 ; R10
-        V8 => 3`3 ; R11
+    V5 => 0`3 ; R8
+    V6 => 1`3 ; R9
+    V7 => 2`3 ; R10
+    V8 => 3`3 ; R11
 
-        SB => 1`3 ; Static base
-        SL => 2`3 ; Stack limit
-        IP => 4`3 ; Intra-procedure call
-        SP => 5`3 ; Stack pointer
-        LR => 6`3 ; Link register
-        PC => 7`3 ; Program counter
+    SB => 1`3 ; Static base
+    SL => 2`3 ; Stack limit
+    IP => 4`3 ; Intra-procedure call
+    SP => 5`3 ; Stack pointer
+    LR => 6`3 ; Link register
+    PC => 7`3 ; Program counter
 }
 
 ; Signed 8-bit half word label
@@ -120,22 +119,103 @@
     }
 }
 
+; Register combination
+#subruledef loregister_bits_1
+{
+    R0 => 0b000000001
+    R1 => 0b000000010
+    R2 => 0b000000100
+    R3 => 0b000001000
+    R4 => 0b000010000
+    R5 => 0b000100000
+    R6 => 0b001000000
+    R7 => 0b010000000
+
+    A1 => 0b000000001
+    A2 => 0b000000010
+    A3 => 0b000000100
+    A4 => 0b000001000
+    V1 => 0b000010000
+    V2 => 0b000100000
+    V3 => 0b001000000
+    V4 => 0b010000000
+
+    FP => 0b010000000 ; Frame pointer in THUMB
+
+    LR => 0b100000000 ; Indicate LR should be pushed onto the stack
+    PC => 0b100000000 ; Indicate PC should be popped from the stack
+}
+
+#subruledef loregister_bits_2
+{
+    {a: loregister_bits_1}, {b: loregister_bits_1} => (a | b)`9
+}
+
+#subruledef loregister_bits_3
+{
+    {a: loregister_bits_2}, {b: loregister_bits_1} => (a | b)`9
+}
+
+#subruledef loregister_bits_4
+{
+    {a: loregister_bits_3}, {b: loregister_bits_1} => (a | b)`9
+}
+
+#subruledef loregister_bits_5
+{
+    {a: loregister_bits_4}, {b: loregister_bits_1} => (a | b)`9
+}
+
+#subruledef loregister_bits_6
+{
+    {a: loregister_bits_5}, {b: loregister_bits_1} => (a | b)`9
+}
+
+#subruledef loregister_bits_7
+{
+    {a: loregister_bits_6}, {b: loregister_bits_1} => (a | b)`9
+}
+
+#subruledef loregister_bits_8
+{
+    {a: loregister_bits_7}, {b: loregister_bits_1} => (a | b)`9
+}
+
+#subruledef loregister_bits_9
+{
+    {a: loregister_bits_8}, {b: loregister_bits_1} => (a | b)`9
+}
+
+#subruledef loregister_bits
+{
+    {a: loregister_bits_1} => a
+    {a: loregister_bits_2} => a
+    {a: loregister_bits_3} => a
+    {a: loregister_bits_4} => a
+    {a: loregister_bits_5} => a
+    {a: loregister_bits_6} => a
+    {a: loregister_bits_7} => a
+    {a: loregister_bits_8} => a
+    {a: loregister_bits_9} => a
+}
+
+
 ; 16-bit THUMB instructions
 #subruledef half_word_thumb
 {
     ; Move shifted register
-    MOV {rd: loregister}, {rs: loregister}              => 0b000 @ 0b00 @ 0`5 @ rs @ rd
-    LSL {rd: loregister}, [{rs: loregister}, {off: u5}] => 0b000 @ 0b00 @ off`5 @ rs @ rd
-    LSR {rd: loregister}, [{rs: loregister}, {off: u5}] => 0b000 @ 0b01 @ off`5 @ rs @ rd
-    ASR {rd: loregister}, [{rs: loregister}, {off: u5}] => 0b000 @ 0b10 @ off`5 @ rs @ rd
+    MOV {rd: loregister}, {rs: loregister}            => 0b000 @ 0b00 @ 0`5 @ rs @ rd
+    LSL {rd: loregister}, {rs: loregister}, {off: u5} => 0b000 @ 0b00 @ off`5 @ rs @ rd
+    LSR {rd: loregister}, {rs: loregister}, {off: u5} => 0b000 @ 0b01 @ off`5 @ rs @ rd
+    ASR {rd: loregister}, {rs: loregister}, {off: u5} => 0b000 @ 0b10 @ off`5 @ rs @ rd
 
     ; Add/substract
-    ADD {rd: loregister}, {rn: loregister}                     => 0b00011 @ 0b0 @ 0b0 @ rn @ rd @ rd
-    ADD {rd: loregister}, [{rs: loregister}, {rn: loregister}] => 0b00011 @ 0b0 @ 0b0 @ rn @ rs @ rd
-    ADD {rd: loregister}, [{rs: loregister}, {off: u3}]        => 0b00011 @ 0b1 @ 0b0 @ off`3 @ rs @ rd
-    SUB {rd: loregister}, {rn: loregister}                     => 0b00011 @ 0b0 @ 0b1 @ rn @ rd @ rd
-    SUB {rd: loregister}, [{rs: loregister}, {rn: loregister}] => 0b00011 @ 0b0 @ 0b1 @ rn @ rs @ rd
-    SUB {rd: loregister}, [{rs: loregister}, {off: u3}]        => 0b00011 @ 0b1 @ 0b1 @ off`3 @ rs @ rd
+    ADD {rd: loregister}, {rn: loregister}                   => 0b00011 @ 0b0 @ 0b0 @ rn @ rd @ rd
+    ADD {rd: loregister}, {rs: loregister}, {rn: loregister} => 0b00011 @ 0b0 @ 0b0 @ rn @ rs @ rd
+    ADD {rd: loregister}, {rs: loregister}, {off: u3}        => 0b00011 @ 0b1 @ 0b0 @ off`3 @ rs @ rd
+    SUB {rd: loregister}, {rn: loregister}                   => 0b00011 @ 0b0 @ 0b1 @ rn @ rd @ rd
+    SUB {rd: loregister}, {rs: loregister}, {rn: loregister} => 0b00011 @ 0b0 @ 0b1 @ rn @ rs @ rd
+    SUB {rd: loregister}, {rs: loregister}, {off: u3}        => 0b00011 @ 0b1 @ 0b1 @ off`3 @ rs @ rd
 
     ; Move/compare/add/subtract immediate
     MOV {rd: loregister}, {off: u8} => 0b001 @ 0b00 @ rd @ off`8
@@ -207,23 +287,21 @@
     LDR {rd: loregister}, [SP, {off: u8}] => 0b1001 @0b1 @ rd @ off`8
 
     ; Load address
-    ADD {rd: loregister}, [PC, {off: u10}]       => 0b1010 @ 0b0 @ rd @ off[9:2]
+    ADD {rd: loregister}, PC, {off: u10}         => 0b1010 @ 0b0 @ rd @ off[9:2]
     ADR {rd: loregister}, {label: u8_word_label} => 0b1010 @ 0b0 @ rd @ label
-    ADD {rd: loregister}, [SP, {off: u10}]       => 0b1010 @ 0b1 @ rd @ off[9:2]
+    ADD {rd: loregister}, SP, {off: u10}         => 0b1010 @ 0b1 @ rd @ off[9:2]
 
     ; Add offset to stack pointer
     ADD SP, {off: u9} => 0b10110000 @ 0b0 @ off[8:2]
     SUB SP, {off: u9} => 0b10110000 @ 0b1 @ off[8:2]
 
     ; Push/pop registers
-    PUSH [{rlist: u8}]     => 0b1011 @ 0b0 @ 0b10 @ 0b0 @ rlist
-    PUSH [{rlist: u8}, LR] => 0b1011 @ 0b0 @ 0b10 @ 0b1 @ rlist
-    POP [{rlist: u8}]      => 0b1011 @ 0b1 @ 0b10 @ 0b0 @ rlist
-    POP [{rlist: u8}, PC]  => 0b1011 @ 0b1 @ 0b10 @ 0b1 @ rlist
+    PUSH {rlist: loregister_bits} => 0b1011 @ 0b0 @ 0b10 @ rlist
+    POP {rlist: loregister_bits}   => 0b1011 @ 0b1 @ 0b10 @ rlist
 
     ; Multiple load/store
-    STMIA {rb: loregister}, {rlist: u8} => 0b1100 @ 0b0 @ rb @ rlist
-    LDMIA {rb: loregister}, {rlist: u8} => 0b1100 @ 0b1 @ rb @ rlist
+    STMIA {rb: loregister}!, {rlist: loregister_bits} => 0b1100 @ 0b0 @ rb @ rlist[7:0]
+    LDMIA {rb: loregister}!, {rlist: loregister_bits} => 0b1100 @ 0b1 @ rb @ rlist[7:0]
 
     ; Conditional branch
     BEQ {label: s8_half_word_label} => 0b1101 @ 0x0 @ label

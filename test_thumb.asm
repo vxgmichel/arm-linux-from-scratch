@@ -14,17 +14,17 @@
 
 ; Move shifted register
 MOV A1, A2
-LSL A1, [A2, 31]
-LSR A1, [A2, 31]
-ASR A1, [A2, 31]
+LSL A1, A2, 31
+LSR A1, A2, 31
+ASR A1, A2, 31
 
 ; Add/substract
 ADD A1, A2
-ADD A1, [A2, A2]
-ADD A1, [A2, 7]
+ADD A1, A2, A2
+ADD A1, A2, 7
 SUB A1, A2
-SUB A1, [A2, A2]
-SUB A1, [A2, 7]
+SUB A1, A2, A2
+SUB A1, A2, 7
 
 ; Move/compare/add/subtract immediate
 MOV A1, 255
@@ -99,8 +99,8 @@ STR A1, [SP, 255]
 LDR A1, [SP, 255]
 
 ; Load address
-ADD A1, [PC, 1023]
-ADD A1, [SP, 1023]
+ADD A1, PC, 1023
+ADD A1, SP, 1023
 ADR A1, label2
 #res 1020
 #align 32
@@ -111,14 +111,20 @@ ADD SP, 508
 SUB SP, 508
 
 ; Push/pop registers
-PUSH [0b11111111]
-PUSH [0b11111111, LR]
-POP [0b11111111]
-POP [0b11111111, PC]
+PUSH A1, A2, A3, A4
+PUSH R0, R1, R2, R3
+PUSH V1, V2, V3, V4
+PUSH LR
+PUSH A1, A2, A3, A4, LR
+POP A1, A2, A3, A4
+POP R0, R1, R2, R3
+POP V1, V2, V3, V4
+POP PC
+POP V1, V2, V3, V4, PC
 
 ; Multiple load/store
-STMIA A1, 0b11111110
-LDMIA A1, 0b11111110
+STMIA A1!, V1, V2, V3, V4
+LDMIA A1!, V1, V2, V3, V4
 
 ; Conditional branch
 before1:

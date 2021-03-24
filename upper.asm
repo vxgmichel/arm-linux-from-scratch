@@ -54,10 +54,10 @@ exit:
 ; Return value:
 ; - A1: Number of bytes read
 read:
-    PUSH [0b11110000, LR] ; Push the context on the stack
+    PUSH LR               ; Push the context on the stack
     MOV R7, READ          ; Prepare a `write` system call
     SWI 0                 ; Perform the `write` system call
-    POP [0b11110000, PC]  ; Return from subroutine and restore context
+    POP PC                ; Return from subroutine and restore context
 
 
 ; Write file descriptor subroutine
@@ -68,10 +68,10 @@ read:
 ; Return value:
 ; - A1: The number of bytes written
 write:
-    PUSH [0b11110000, LR] ; Push the context on the stack
+    PUSH LR               ; Push the context on the stack
     MOV R7, WRITE         ; Prepare a `write` system call
     SWI 0                 ; Perform the `write` system call
-    POP [0b11110000, PC]  ; Return from subroutine and restore context
+    POP PC                ; Return from subroutine and restore context
 
 
 ; Uppercase subroutine
@@ -84,7 +84,7 @@ write:
 ; Return value:
 ; - No return value
 uppercase:
-    PUSH [0b11110000, LR] ; Push the context on the stack
+    PUSH V1, V2, LR       ; Push the context on the stack
     MOV V1, 0             ; Initialize offset
     .loop:
     CMP A2, V1            ; Test offset against buffer size
@@ -101,7 +101,7 @@ uppercase:
     ADD V1, 1             ; Increment offset
     B .loop               ; Loop over
     .exit:
-    POP [0b11110000, PC]  ; Return from subroutine and restore context
+    POP V1, V2, PC        ; Return from subroutine and restore context
 
 
 ; String compare subroutine
@@ -115,7 +115,7 @@ uppercase:
 ; Return value:
 ; - A1: (V1 - V2) for the first different byte, or 0 if the strings are equal
 strcmp:
-    PUSH [0b11110000, LR] ; Push the context on the stack
+    PUSH V1, V2, LR       ; Push the context on the stack
     MOV A3, 0             ; Initialize offset
     .loop:
     LDRB V1, [A1, A3]     ; Load a byte from A1
@@ -127,8 +127,8 @@ strcmp:
     ADD A3, 1             ; Increment offset
     B .loop               ; Loop over
     .break:
-    SUB A1, [V1, V2]      ; Set the return value to the byte difference
-    POP [0b11110000, PC]  ; Return from subroutine and restore context
+    SUB A1, V1, V2        ; Set the return value to the byte difference
+    POP V1, V2, PC        ; Return from subroutine and restore context
 
 
 ; Program entry point as defined in `elf.asm`
@@ -142,7 +142,7 @@ entry_point:
     LDR A1, stack_limit_address ; Load stack limit into A1
     MOV SL, A1                  ; Set stack limit
     LDR V1, [SP, 0]             ; Load argc in V1
-    ADD V2, [SP, 4]             ; Load argv in V2
+    ADD V2, SP, 4               ; Load argv in V2
     MOV SP, SB                  ; Set stack pointer
 
     .argparse:                  ; Parse arguments:
