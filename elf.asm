@@ -22,8 +22,8 @@ PF_R = 0x4                      ; Read access
 ; Little endian rules
 #ruledef little_endian
 {
-    ld16 {val} => val[7:0] @ val[15:8]                           ; Equivalent to #d16
-    ld32 {val} => val[7:0] @ val[15:8] @ val[23:16] @ val[31:24] ; Equivalent to #d32
+    ld16 {val: i16} => le(val) ; Equivalent to #d16
+    ld32 {val: i32} => le(val) ; Equivalent to #d32
 }
 
 ; Bank definitions

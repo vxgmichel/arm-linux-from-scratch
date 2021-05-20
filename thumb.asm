@@ -346,8 +346,8 @@
 ; Expose all the rules as little endian
 #ruledef little_endian_thumb
 {
-    {val: half_word_thumb}      => val[7:0] @ val[15:8]
-    {val: word_thumb}           => val[23:16] @ val[31:24] @ val[7:0] @ val[15:8]
-    {val: switch_to_thumb}      => val[39:32] @ val[47:40] @ val[55:48] @ val[63:56] @ val[7:0] @ val[15:8] @ val[23:16] @ val[31:24]
+    {val: half_word_thumb}      => le(val)                        ; 1 little-endian half word
+    {val: word_thumb}           => le(val[31:16]) @ le(val[15:0]) ; 2 little-endian half words
+    {val: switch_to_thumb}      => le(val[63:32]) @ le(val[31:0]) ; 2 little-endian words
 }
 
