@@ -153,37 +153,37 @@
 
 #subruledef loregister_bits_3
 {
-    {a: loregister_bits_2}, {b: loregister_bits_1} => (a | b)`9
+    {a: loregister_bits_1}, {b: loregister_bits_2} => (a | b)`9
 }
 
 #subruledef loregister_bits_4
 {
-    {a: loregister_bits_3}, {b: loregister_bits_1} => (a | b)`9
+    {a: loregister_bits_1}, {b: loregister_bits_3} => (a | b)`9
 }
 
 #subruledef loregister_bits_5
 {
-    {a: loregister_bits_4}, {b: loregister_bits_1} => (a | b)`9
+    {a: loregister_bits_1}, {b: loregister_bits_4} => (a | b)`9
 }
 
 #subruledef loregister_bits_6
 {
-    {a: loregister_bits_5}, {b: loregister_bits_1} => (a | b)`9
+    {a: loregister_bits_1}, {b: loregister_bits_5} => (a | b)`9
 }
 
 #subruledef loregister_bits_7
 {
-    {a: loregister_bits_6}, {b: loregister_bits_1} => (a | b)`9
+    {a: loregister_bits_1}, {b: loregister_bits_6} => (a | b)`9
 }
 
 #subruledef loregister_bits_8
 {
-    {a: loregister_bits_7}, {b: loregister_bits_1} => (a | b)`9
+    {a: loregister_bits_1}, {b: loregister_bits_7} => (a | b)`9
 }
 
 #subruledef loregister_bits_9
 {
-    {a: loregister_bits_8}, {b: loregister_bits_1} => (a | b)`9
+    {a: loregister_bits_1}, {b: loregister_bits_8} => (a | b)`9
 }
 
 #subruledef loregister_bits
