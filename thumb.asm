@@ -351,3 +351,17 @@
     {val: switch_to_thumb}      => le(val[63:32]) @ le(val[31:0]) ; 2 little-endian words
 }
 
+; Calling convention for subroutines:
+; - V1, V2, V3, V4 and LR are pushed on the stack in the subroutine prologue
+; - SP is maintained in order to remain unchanged as the subroutine returns
+; - V1, V2, V3, V4 and LR are poped from the stack in the subroutine epilogue
+; - Anything else might be affected by the call
+; - http://www.cs.cornell.edu/courses/cs414/2001FA/armcallconvention.pdf
+#ruledef arm_subroutine
+{
+    ; Prologue
+    PRO => asm { PUSH V1, V2, V3, V4, LR }
+    ; Epilogue
+    RET => asm { POP V1, V2, V3, V4, PC }
+
+}

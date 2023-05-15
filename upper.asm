@@ -11,68 +11,11 @@
 ; Produce a static ELF executable
 #include "elf.asm"
 
-
 ; Program bank as defined in `elf.asm`
 #bank program
 
-; Calling convention for subroutines:
-; - V1, V2, V3, V4 and LR are pushed on the stack in the subroutine prologue
-; - SP is maintained in order to remain unchanged as the subroutine returns
-; - V1, V2, V3, V4 and LR are poped from the stack in the subroutine epilogue
-; - Anything else might be affected by the call
-; - http://www.cs.cornell.edu/courses/cs414/2001FA/armcallconvention.pdf
-
-; Linux system calls for ARM 32-bit
-; Based on the following table:
-; - https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#arm-32_bit_EABI
-EXIT = 1
-FORK = 2
-READ = 3
-WRITE = 4
-
-; Linux file descriptors
-STDIN = 0
-STDOUT = 1
-STDERR = 2
-
-
-; Exit subroutine
-; Arguments:
-; - A1: Return code
-; Return value:
-; - Does not return
-exit:
-    MOV R7, EXIT ; Prepare an `exit` system call
-    SWI 0        ; Perform the `exit` system call
-
-
-; Read file descriptor subroutine
-; Arguments:
-; - A1: File descriptor
-; - A2: Buffer address
-; - A3: Maximum buffer size
-; Return value:
-; - A1: Number of bytes read
-read:
-    PUSH LR               ; Push the context on the stack
-    MOV R7, READ          ; Prepare a `write` system call
-    SWI 0                 ; Perform the `write` system call
-    POP PC                ; Return from subroutine and restore context
-
-
-; Write file descriptor subroutine
-; Arguments:
-; - A1: File descriptor
-; - A2: Buffer address
-; - A3: Number of bytes to write
-; Return value:
-; - A1: The number of bytes written
-write:
-    PUSH LR               ; Push the context on the stack
-    MOV R7, WRITE         ; Prepare a `write` system call
-    SWI 0                 ; Perform the `write` system call
-    POP PC                ; Return from subroutine and restore context
-
+; Include linux system calls
+#include "linux.asm"
 
 ; Uppercase subroutine
 ; Arguments:
@@ -84,7 +27,7 @@ write:
 ; Return value:
 ; - No return value
 uppercase:
-    PUSH V1, V2, LR       ; Push the context on the stack
+    PRO                   ; Push the context on the stack
     MOV V1, 0             ; Initialize offset
     .loop:
     CMP A2, V1            ; Test offset against buffer size
@@ -101,7 +44,7 @@ uppercase:
     ADD V1, 1             ; Increment offset
     B .loop               ; Loop over
     .exit:
-    POP V1, V2, PC        ; Return from subroutine and restore context
+    RET                   ; Return from subroutine and restore context
 
 
 ; String compare subroutine
@@ -115,7 +58,7 @@ uppercase:
 ; Return value:
 ; - A1: (V1 - V2) for the first different byte, or 0 if the strings are equal
 strcmp:
-    PUSH V1, V2, LR       ; Push the context on the stack
+    PRO                   ; Push the context on the stack
     MOV A3, 0             ; Initialize offset
     .loop:
     LDRB V1, [A1, A3]     ; Load a byte from A1
@@ -128,7 +71,7 @@ strcmp:
     B .loop               ; Loop over
     .break:
     SUB A1, V1, V2        ; Set the return value to the byte difference
-    POP V1, V2, PC        ; Return from subroutine and restore context
+    RET                   ; Return from subroutine and restore context
 
 
 ; Program entry point as defined in `elf.asm`
