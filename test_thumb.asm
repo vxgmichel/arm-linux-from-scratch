@@ -1,16 +1,12 @@
 ; Write all the instructions in THUMB in order
 
 ; Useful for testing the THUMB ruleset against regression:
-; $ customasm test_thumb.asm -p thumb_reference.bin
+; $ customasm test_thumb.asm -p > thumb_reference.txt
 ; $ <make some changes>
-; $ customasm test_thumb.asm -p | diff thumb_reference.bin -
+; $ customasm test_thumb.asm -p | diff thumb_reference.txt -
 
 ; Load the THUMB instruction ruleset
 #include "thumb.asm"
-
-; Testing
-#bankdef test {#addr 0, #size 8 * 1024 * 1024, #outp 1024 * 1024 * 8}
-#bank test
 
 ; Move shifted register
 MOV A1, A2
